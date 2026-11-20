@@ -1,7 +1,6 @@
 package kololog
 
-// Golden bytes of a default log written by kolo-log v0.1.6 (the released module and this tree before derived keys gave the
-// same bytes): identity seed 0x42 x 32, cryptotest.SetGlobalRandom(t, 16), New with no options, four Appends, Delete(1).
+// Golden bytes of a default log: identity seed 0x42 x 32, cryptotest.SetGlobalRandom(t, 16), New with no options, four Appends, Delete(1).
 
 type goldenEntry struct {
 	record, recordJSON, ciphertext, marker, key, markerJSON string
@@ -12,7 +11,7 @@ type goldenLog struct {
 	entries                                   []goldenEntry
 }
 
-var goldenV016 = goldenLog{
+var goldenDefaultLog = goldenLog{
 	probe:      "7989c155f15ebdb57e2363c0d55e6d0b",
 	header:     "126b6f6c6f2d6c6f672f6865616465722f76302152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db127989c155f15ebdb57e2363c0d55e6d0bd35a15422672a0a46a4117b68437941e0062ebc70f9ed48dfddbb86cf716e3a26d20c12c8319c998065adad1351d88370ebf7e7e5a76baacc6a37735a97ee754677c2949fc8724b26abcf0956f9f13df0b",
 	headerJSON: "{\"logKey\":\"2152f8d19b791d24453242e15f2eab6cb7cffa7b6a5ed30097960e069881db12\",\"logId\":\"7989c155f15ebdb57e2363c0d55e6d0bd35a15422672a0a46a4117b68437941e\",\"encoding\":\"bytes\",\"signature\":\"62ebc70f9ed48dfddbb86cf716e3a26d20c12c8319c998065adad1351d88370ebf7e7e5a76baacc6a37735a97ee754677c2949fc8724b26abcf0956f9f13df0b\"}",

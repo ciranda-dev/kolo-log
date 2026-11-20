@@ -26,7 +26,7 @@ var (
 )
 
 // LogHeader is the signed description of a log, persisted next to its data by the storage layer.
-// A header with [RandomKeys] has the encoding of kolo-log v0.1.6; one with [DerivedKeys] has its own tag and signing context.
+// A header with [RandomKeys] and one with [DerivedKeys] have their own tag and signing context.
 type LogHeader struct {
 	LogKey    ed25519.PublicKey
 	LogID     LogID
@@ -121,7 +121,7 @@ func (h LogHeader) clone() LogHeader {
 	return h
 }
 
-// logHeaderJSON leaves keys and epoch out of a header with random keys, so its JSON is the four fields of v0.1.6.
+// logHeaderJSON leaves keys and epoch out of a header with random keys, so its JSON is the four fields logKey, logId, encoding and signature.
 type logHeaderJSON struct {
 	LogKey    string `json:"logKey"`
 	LogID     string `json:"logId"`

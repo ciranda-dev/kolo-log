@@ -35,22 +35,22 @@ func unhex(t testing.TB, s string) []byte {
 func goldenEntries(t testing.TB) []Entry {
 	t.Helper()
 	var out []Entry
-	for _, g := range goldenV016.entries {
+	for _, g := range goldenDefaultLog.entries {
 		e := Entry{Record: unhex(t, g.record), Ciphertext: unhex(t, g.ciphertext), Marker: unhex(t, g.marker), Key: unhex(t, g.key)}
 		out = append(out, Entry{Record: e.Record, Ciphertext: absent(e.Ciphertext), Marker: absent(e.Marker), Key: EntryKey(absent(e.Key))})
 	}
 	return out
 }
 
-// A default log written now has exactly the bytes v0.1.6 wrote from the same randomness.
+// A default log written now has exactly the golden bytes when written from the same randomness.
 func TestDefaultLogBytesUnchanged(t *testing.T) {
 	cryptotest.SetGlobalRandom(t, 16)
 	probe := make([]byte, 16)
 	if _, err := rand.Read(probe); err != nil {
 		t.Fatal(err)
 	}
-	if hex.EncodeToString(probe) != goldenV016.probe {
-		t.Skip("this Go version's cryptotest stream differs from the one the golden log was written with; TestGoldenV016LogReads still checks it")
+	if hex.EncodeToString(probe) != goldenDefaultLog.probe {
+		t.Skip("this Go version's cryptotest stream differs from the one the golden log was written with; TestGoldenLogReads still checks it")
 	}
 	cryptotest.SetGlobalRandom(t, 16)
 	l, err := New(goldenIdentity(t), NewMemory())
@@ -66,59 +66,59 @@ func TestDefaultLogBytesUnchanged(t *testing.T) {
 	if err := l.Delete(1); err != nil {
 		t.Fatal(err)
 	}
-	if got := hex.EncodeToString(l.Header().Encode()); got != goldenV016.header {
-		t.Fatalf("header\n got %s\nwant %s", got, goldenV016.header)
+	if got := hex.EncodeToString(l.Header().Encode()); got != goldenDefaultLog.header {
+		t.Fatalf("header\n got %s\nwant %s", got, goldenDefaultLog.header)
 	}
-	if got := string(mustJSON(t, l.Header())); got != goldenV016.headerJSON {
-		t.Fatalf("header JSON\n got %s\nwant %s", got, goldenV016.headerJSON)
+	if got := string(mustJSON(t, l.Header())); got != goldenDefaultLog.headerJSON {
+		t.Fatalf("header JSON\n got %s\nwant %s", got, goldenDefaultLog.headerJSON)
 	}
 	h, err := l.Head()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := hex.EncodeToString(h.Encode()); got != goldenV016.head {
-		t.Fatalf("head\n got %s\nwant %s", got, goldenV016.head)
+	if got := hex.EncodeToString(h.Encode()); got != goldenDefaultLog.head {
+		t.Fatalf("head\n got %s\nwant %s", got, goldenDefaultLog.head)
 	}
 	for i, want := range goldenEntries(t) {
 		got := mustEntry(t, l, uint64(i))
 		if !bytes.Equal(got.Record, want.Record) || !bytes.Equal(got.Ciphertext, want.Ciphertext) ||
 			!bytes.Equal(got.Marker, want.Marker) || !bytes.Equal(got.Key, want.Key) {
-			t.Fatalf("entry %d differs from the v0.1.6 bytes", i)
+			t.Fatalf("entry %d differs from the golden bytes", i)
 		}
 	}
 }
 
-// The v0.1.6 golden log decodes and re-encodes byte for byte, in binary and JSON, restores, and reads the same values.
-func TestGoldenV016LogReads(t *testing.T) {
+// The golden log decodes and re-encodes byte for byte, in binary and JSON, restores, and reads the same values.
+func TestGoldenLogReads(t *testing.T) {
 	id := goldenIdentity(t)
-	header, head := unhex(t, goldenV016.header), unhex(t, goldenV016.head)
+	header, head := unhex(t, goldenDefaultLog.header), unhex(t, goldenDefaultLog.head)
 	lh, err := DecodeLogHeader(header)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if lh.Keys != RandomKeys || lh.Epoch != 0 || !bytes.Equal(lh.Encode(), header) || VerifyLogHeader(id.PublicKey(), lh) != nil {
-		t.Fatalf("v0.1.6 header decodes as %+v", lh)
+		t.Fatalf("header decodes as %+v", lh)
 	}
-	if got := string(mustJSON(t, lh)); got != goldenV016.headerJSON {
-		t.Fatalf("header JSON\n got %s\nwant %s", got, goldenV016.headerJSON)
+	if got := string(mustJSON(t, lh)); got != goldenDefaultLog.headerJSON {
+		t.Fatalf("header JSON\n got %s\nwant %s", got, goldenDefaultLog.headerJSON)
 	}
 	var fromJSON LogHeader
-	if err := json.Unmarshal([]byte(goldenV016.headerJSON), &fromJSON); err != nil || !bytes.Equal(fromJSON.Encode(), header) {
-		t.Fatalf("v0.1.6 header JSON: %v", err)
+	if err := json.Unmarshal([]byte(goldenDefaultLog.headerJSON), &fromJSON); err != nil || !bytes.Equal(fromJSON.Encode(), header) {
+		t.Fatalf("header JSON: %v", err)
 	}
 	h, err := DecodeHead(head)
-	if err != nil || !bytes.Equal(h.Encode(), head) || string(mustJSON(t, h)) != goldenV016.headJSON {
-		t.Fatalf("v0.1.6 head: %v", err)
+	if err != nil || !bytes.Equal(h.Encode(), head) || string(mustJSON(t, h)) != goldenDefaultLog.headJSON {
+		t.Fatalf("head: %v", err)
 	}
-	for i, g := range goldenV016.entries {
+	for i, g := range goldenDefaultLog.entries {
 		r, err := DecodeRecord(unhex(t, g.record))
 		if err != nil || hex.EncodeToString(r.Encode()) != g.record || string(mustJSON(t, r)) != g.recordJSON {
-			t.Fatalf("v0.1.6 record %d: %v", i, err)
+			t.Fatalf("record %d: %v", i, err)
 		}
 		if g.marker != "" {
 			m, err := DecodeDeleteMarker(unhex(t, g.marker))
 			if err != nil || hex.EncodeToString(m.Encode()) != g.marker || string(mustJSON(t, m)) != g.markerJSON {
-				t.Fatalf("v0.1.6 marker %d: %v", i, err)
+				t.Fatalf("marker %d: %v", i, err)
 			}
 		}
 	}
