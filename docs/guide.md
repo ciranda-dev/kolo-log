@@ -139,6 +139,8 @@ Multi-device use and chat use one log per device or person, each
 replicated by the others as a read-only replica. There is no multi-writer
 log.
 
+A replica cannot tell that it is behind: a peer can serve an older valid head, or withhold newer ones, and heads carry no time. Two replicas shown different histories by the owner detect it only when one of them sees the other's head (`ErrDiverged`); kolo-log does not exchange heads between replicas.
+
 ## Entry keys
 
 `Entry.Key` is the entry's key (an `EntryKey`), nil when it is unknown or
